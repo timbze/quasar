@@ -43,11 +43,11 @@ export default createComponent({
       type: [ String, Function ],
       default: 'id'
     },
-
+    resizableCols: Boolean,
     columns: Array,
     loading: Boolean,
 
-    resizableCols: Boolean,
+
 
     iconFirstPage: String,
     iconPrevPage: String,
@@ -122,44 +122,7 @@ export default createComponent({
     ...useTableSortProps
   },
 
-  const vm = getCurrentInstance()
-  const colWidths = reactive({})
-  const resizingCol = ref(null)
-  const startX = ref(0)
 
-  onMounted(() => {
-    vm.proxy.computedCols.forEach(col => {
-      colWidths[col.name] = 150
-    })
-  })
-
-  function startResizing(colName, evt) {
-    resizingCol.value = colName
-    startX.value = evt.pageX
-    document.addEventListener('mousemove', handleResize)
-    document.addEventListener('mouseup', stopResizing)
-  }
-
-  function handleResize(evt) {
-    if (!resizingCol.value) return
-    const diff = evt.pageX - startX.value
-    colWidths[resizingCol.value] += diff
-    startX.value = evt.pageX
-  }
-
-  function stopResizing() {
-    document.removeEventListener('mousemove', handleResize)
-    document.removeEventListener('mouseup', stopResizing)
-    resizingCol.value = null
-  }
-
-  return {
-    colWidths,
-    startResizing,
-    handleResize,
-    stopResizing
-  }
-  },
 
   emits: [
     'request', 'virtualScroll',
@@ -171,6 +134,47 @@ export default createComponent({
   setup (props, { slots, emit }) {
     const vm = getCurrentInstance()
     const { proxy: { $q } } = vm
+
+
+    const colWidths = reactive({})
+    const resizingCol = ref(null)
+    const startX = ref(0)
+
+    onMounted(() => {
+      props.columns.forEach(col => {
+        colWidths[col.name] = 150
+      })
+    })
+
+    function startResizing(colName, evt) {
+      resizingCol.value = colName
+      startX.value = evt.pageX
+      document.addEventListener('mousemove', handleResize)
+      document.addEventListener('mouseup', stopResizing)
+    }
+
+    function handleResize(evt) {
+      if (!resizingCol.value) return
+      const diff = evt.pageX - startX.value
+      colWidths[resizingCol.value] += diff
+      startX.value = evt.pageX
+    }
+
+  function stopResizing() {
+        document.removeEventListener('mousemove', handleResize);
+        document.removeEventListener('mouseup', stopResizing);
+        resizingCol.value = null;
+      }
+
+      return {
+        colWidths,
+        startResizing,
+        handleResize,
+        stopResizing,
+      };
+
+
+
 
 
     const isDark = useDark(props, $q)
@@ -709,12 +713,18 @@ export default createComponent({
           props = getHeaderScope({ col })
 
         return slot !== void 0
-          ? slot(props)
-          : h(QTh, {
-            key: col.name,
-            props
-          }, () => col.label)
-      })
+              ? slot(props)
+              : h(QTh, {
+                  key: col.name,
+                  props
+                }, () => [
+                  col.label,
+                  props.resizableCols ? h('div', {
+                    class: 'q-table__resize-handle',
+                    onMousedown: evt => startResizing(col.name, evt)
+                  }) : null
+                ])
+          })
 
       if (singleSelection.value === true && props.grid !== true) {
         child.unshift(
@@ -741,12 +751,12 @@ export default createComponent({
       }
 
       return [
-        h('tr', {
-          class: props.tableHeaderClass,
-          style: props.tableHeaderStyle
-        }, child)
-      ]
-    }
+          h('tr', {
+            class: props.tableHeaderClass,
+            style: props.tableHeaderStyle
+          }, child)
+        ]
+      }
 
     function getHeaderScope (data) {
       Object.assign(data, {
