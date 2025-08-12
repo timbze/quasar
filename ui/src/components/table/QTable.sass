@@ -15,6 +15,15 @@
     font-weight: 500
     font-size: $table-th-font-size
     user-select: none
+    .q-table__resize-handle
+      cursor: col-resize
+      display: inline-block
+      width: 6px
+      height: 100%
+      background-color: #ccc
+      position: absolute
+      right: 0
+      top: 0
     &.sortable
       cursor: pointer
       &:hover .q-table__sort-icon
@@ -292,16 +301,3 @@ body.desktop .q-table > tbody > tr:not(.q-tr--no-hover):hover > td:not(.q-td--no
   &.q-table--vertical-separator, &.q-table--cell-separator
     .q-table__top
       border-color: $table-dark-border-color
-
-
-
-.q-table th .q-table__resize-handle {
-  cursor: col-resize
-  display: inline-block
-  width: 6px
-  height: 100%
-  background-color: #ccc
-  position: absolute
-  right: 0
-  top: 0
-}

@@ -43,11 +43,10 @@ export default createComponent({
       type: [ String, Function ],
       default: 'id'
     },
-    resizableCols: Boolean,
+
     columns: Array,
+    resizableColumns: Boolean,
     loading: Boolean,
-
-
 
     iconFirstPage: String,
     iconPrevPage: String,
@@ -166,14 +165,6 @@ export default createComponent({
       document.removeEventListener('mouseup', stopResizing)
       resizingCol.value = null
     }
-
-    return {
-      colWidths,
-      resetColumnWidth,
-      startResizing,
-      handleResize,
-      stopResizing,
-  };
 
     const isDark = useDark(props, $q)
     const { inFullscreen, toggleFullscreen } = useFullscreen()
@@ -693,65 +684,69 @@ export default createComponent({
       return h('thead', child)
     }
 
- function getTHeadTR() {
-   const header = slots.header;
-   const headerCell = slots['header-cell'];
+    function getTHeadTR () {
+      const
+        header = slots.header,
+        headerCell = slots[ 'header-cell' ]
 
-   if (header !== void 0) {
-     return header(
-       getHeaderScope({ header: true })
-     ).slice();
-   }
+      if (header !== void 0) {
+        return header(
+          getHeaderScope({ header: true })
+        ).slice()
+      }
 
-   const child = computedCols.value.map(col => {
-     const headerCellCol = slots[`header-cell-${col.name}`];
-     const slot = headerCellCol !== void 0 ? headerCellCol : headerCell;
-     const props = getHeaderScope({ col });
+      const child = computedCols.value.map(col => {
+        const
+          headerCellCol = slots[ `header-cell-${ col.name }` ],
+          slot = headerCellCol !== void 0 ? headerCellCol : headerCell,
+          props = getHeaderScope({ col })
 
-     return slot !== void 0
-       ? slot(props)
-       : h(QTh, {
-           key: col.name,
-           props
-         }, () => [
-           col.label,
-           col.resizable ? h('div', {
-             class: 'q-table__resize-handle',
-             onMousedown: evt => startResizing(col.name, evt)
-           }) : null
-         ]);
-   });
+        return slot !== void 0
+          ? slot(props)
+          : h(QTh, {
+            key: col.name,
+            props
+          }, () => [
+            col.label,
+            col.resizableColumns
+              ? h('div', {
+                class: 'q-table__resize-handle',
+                onMousedown: evt => startResizing(col.name, evt)})
+              : null
+          ])
+      })
 
-   if (singleSelection.value === true && props.grid !== true) {
-     child.unshift(
-       h('th', { class: 'q-table--col-auto-width' }, ' ')
-     );
-   } else if (multipleSelection.value === true) {
-     const slot = slots['header-selection'];
-     const content = slot !== void 0
-       ? slot(getHeaderScope({}))
-       : [
-           h(QCheckbox, {
-             color: props.color,
-             modelValue: headerSelectedValue.value,
-             dark: isDark.value,
-             dense: props.dense,
-             'onUpdate:modelValue': onMultipleSelectionSet
-           })
-         ];
+      if (singleSelection.value === true && props.grid !== true) {
+        child.unshift(
+          h('th', { class: 'q-table--col-auto-width' }, ' ')
+        )
+      }
+      else if (multipleSelection.value === true) {
+        const slot = slots[ 'header-selection' ]
+        const content = slot !== void 0
+          ? slot(getHeaderScope({}))
+          : [
+              h(QCheckbox, {
+                color: props.color,
+                modelValue: headerSelectedValue.value,
+                dark: isDark.value,
+                dense: props.dense,
+                'onUpdate:modelValue': onMultipleSelectionSet
+              })
+            ]
 
-     child.unshift(
-       h('th', { class: 'q-table--col-auto-width' }, content)
-     );
-   }
+        child.unshift(
+          h('th', { class: 'q-table--col-auto-width' }, content)
+        )
+      }
 
-   return [
-     h('tr', {
-       class: props.tableHeaderClass,
-       style: props.tableHeaderStyle
-     }, child)
-   ];
- }
+      return [
+        h('tr', {
+          class: props.tableHeaderClass,
+          style: props.tableHeaderStyle
+        }, child)
+      ]
+    }
 
     function getHeaderScope (data) {
       Object.assign(data, {
